@@ -1,0 +1,14 @@
+##!/usr/bin/bash     # For AIX
+##!/bin/bash         # For Linux
+##!/usr/bin/env bash
+##!/bin/sh
+
+export INPUT_FILE_PATH="/var/log/yum.log"
+export INPUT_LOG_TYPE="syslog"
+
+export OUTPUT_HDFS_SERVER="iscdhnn101.innovate.ibm.com"
+export OUTPUT_HDFS_PORT="50070"
+export OUTPUT_HDFS_USER="webhdfs"
+export OUTPUT_ENV="ihelog"
+export OUTPUT_APPNAME="buildtest"
+

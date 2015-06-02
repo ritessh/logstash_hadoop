@@ -1,0 +1,47 @@
+# Dockerfile - Install Logstash with webhdfs 
+FROM centos:latest
+MAINTAINER  Ritesh Prajapati <ritpraja@in.ibm.com>
+
+docker run -t -i centos  /bin/bash 
+RUN yum install -y git   && \
+    yum install -y wget  && \
+    yum install -y java-1.6.0* make && \
+    cd opt 
+
+WORKDIR /opt
+RUN git clone https://github.com/elasticsearch/logstash.git
+WORKDIR /opt/logstash
+
+RUN mkdir -p logstash/outputs && \
+    mkdir logstash/inputs && \
+    cd logstash/outputs
+
+WORKDIR /opt/logstash/logstash/outputs
+
+RUN git clone https://github.com/dstore-dbap/logstash-webhdfs && \
+    git clone https://github.com/kzk/webhdfs  && \
+    git clone https://github.com/miyucy/snappy && \
+    git clone https://github.com/LucidWorks/solrlogmanager && \
+    cp logstash-webhdfs/plugins/logstash/outputs/webhdfs.rb  webhdfs.rb 
+
+WORKDIR /opt/logstash
+
+RUN git checkout v1.3.3 && \ 
+    mkdir -p vendor/jar/ && \
+    cd vendor/jar/ && \ 
+    wget http://jruby.org.s3.amazonaws.com/downloads/1.7.10/jruby-complete-1.7.10.jar  
+
+WORKDIR /opt/logstash
+RUN cp logstash.gemspec logstash.gemspec.bak && \
+    head -n -1 logstash.gemspec > logstash.gemspec.tmp && \
+    echo '  #Webhdfs Deps' >> logstash.gemspec.tmp && \
+    echo '  gem.add_runtime_dependency "webhdfs"' >> logstash.gemspec.tmp && \
+    echo '  #Webhdfs Snappy Deps' >> logstash.gemspec.tmp && \
+    echo '  gem.add_runtime_dependency "snappy"' >> logstash.gemspec.tmp && \
+    tail -1 logstash.gemspec >> logstash.gemspec.tmp && \
+    mv logstash.gemspec.tmp logstash.gemspec && \
+    USE_JRUBY=1 bin/logstash deps
+
+COPY  LOGSTASH_CONFIG_TEMPLATE.conf  ./
+ADD  startLogstash.sh /opt/logstash/startLogstash.sh
+
